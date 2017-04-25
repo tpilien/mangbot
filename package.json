@@ -1,0 +1,16 @@
+{
+  "name": "mangbot",
+  "version": "0.1.0",
+  "description": "mangbot: discord bot for mangsquad",
+  "main": "mangbot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon mangbot.js"
+  },
+  "author": "Timothy Pilien",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^11.0.0",
+    "ytdl-core": "^0.13.1"
+  }
+}
