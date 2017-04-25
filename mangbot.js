@@ -21,22 +21,6 @@ client.on('ready', () => {
   console.log('I am ready!');
 });
 
-// Create an event listener for messages
-//client.on('message', message => {
-//  // If the message is "ping"
-//  if (message.content === 'ping') {
-//    // Send "pong" to the same channel
-//    message.channel.send('pong');
-//  }
-//});
-
-// Get the "manglist"
-//client.on('message', message => {
-//	if (message.content === 'mang getmanglist') {
-//		message.channel.send('https://docs.google.com/document/d/1qjX9pKGQUYlWpQagI5fSbEdxuF6ZE97i3dh-Po1g2OQ/edit?usp=sharing');
-//	}
-//});
-
 // process messages
 client.on('message', msg => {
 	// make sure bot can't read from itself
@@ -49,10 +33,10 @@ client.on('message', msg => {
 	if (msgPrefix === PREFIX) {
 		// find out what command is being sent
 		var msgCmd = msg.content.split(" ")[1];
-		
-		msg.channel.send("Mang Bot Received Command: " + msgCmd + " Arguments: " + "'" + msg.content.substring(msgPrefix.length + msgCmd.length + 2) + "'");
+		var msgArgs = msg.content.substring(msgPrefix.length + msgCmd.length + 2);
+
 		if (cmds[msgCmd]) {
-			cmds[msgCmd].process(msg);
+			cmds[msgCmd].process(msg, msgArgs);
 		}
 	}
 });

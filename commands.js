@@ -5,10 +5,21 @@ const Discord = require('discord.js');
 const ytdl = require('ytdl-core');
 
 module.exports = {
-	"ping": {
-		name: "ping",
-		process: (msg) => {
-			msg.channel.send("pong!");
+	"create-channel": {
+		name: "create-channel",
+		process: (msg, args) => {
+			msg.guild.createChannel(args, 'text');
+		}
+	},
+	"delete-channel": {
+		name: "delete-chhanel",
+		process: (msg, args) => {
+			for (let [channelId, channel] of msg.guild.channels) {
+				if (channel.name === args) {
+					channel.delete();
+					break;
+				}
+			}
 		}
 	},
 	"playdnb": {
