@@ -12,9 +12,6 @@ var cmds = require("./commands.js");
 // Create an instance of a Discord Client
 const client = new Discord.Client();
 
-// The token of your bot - https://discordapp.com/developers/applications/me
-const token = 'MzA2MDMxMjIzODMzMjMxMzYx.C999ig.NB6kq7WLY4SQmw_NJkM-Ii1x0rA';
-
 // The ready event is vital, it means that your bot will only start reacting to information
 // from Discord _after_ ready is emitted
 client.on('ready', () => {
@@ -42,4 +39,4 @@ client.on('message', msg => {
 });
 
 // Log our bot in
-client.login(token);
+client.login(auth["bot_token"]);
