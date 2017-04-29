@@ -1,8 +1,13 @@
 // commands.js
 
+//
+const auth = require("./auth.json");
+const YOUTUBE_API_KEY = auth["youtube_api_key"];
+
 // Import modules
 const Discord = require('discord.js');
 const ytdl = require('ytdl-core');
+const request = require('request');
 
 // Global vars
 // Need dispatcher to control volume while streaming
@@ -11,8 +16,10 @@ var dispatcher = null;
 // Music variables
 // Keep a queue of songs to playStream
 var audioQueue = [];
-// Current playing song;
-var audioCurrent;
+var audioConn = null;
+var audioHandler = null;
+var audioVolume = 0.3;
+var audioCurrent = null;
 
 module.exports = {
 	"create-channel": {
@@ -58,66 +65,123 @@ module.exports = {
 			}
 		}
 	},
+	"now-playing": {
+		name: "now-playing",
+		process: (msg) => {
+			msg.reply("Mang Bot is play: " + audioCurrent);
+		}
+	},
 	"list-queue": {
 		name: "list-queue",
 		process: (msg) => {
-			for (let song of audioQueue) {
-				msg.channel.sendMessage(song);
+			var res = "";
+			
+			if (audioQueue.size === 0 && audioCurrent === null) {
+				res = "There ain't no songs queue mang!"
+			} else {
+				res += audioCurrent + "\n";
+				for (let song of audioQueue) {
+					res += song + "\n";
+				}
 			}
+			
+			msg.reply(res);
 		}
 	},
 	"queue-song": {
 		name: "queue-song",
 		process: (msg, args) => {
-			var author = msg.author;
-			var server = msg.guild;
-			for (let [channelId, channel] of server.channels) {
-				if (channel instanceof Discord.VoiceChannel) {
-					for (let [memberId, member] of channel.members) {
-						if (author.id === memberId) {
-							channel.join()
-							  .then(conn => {
-								  // queue the song and play the first one
-								  queueSong(args);
-								  
-								  if (audioQueue.length === 1) {
-									playSong(conn, audioQueue[0]); 
-								  }
-								  								  
-								  dispatcher.once('end', () => {
-									var current = popSong();
-									if (audioQueue.length >= 1) {
-										playSong(conn, current);
-									}
-								  });
-							  });
-							break;
-						}
-					}
-				}
-			}
+			// TODO: Regex for playlist / Youtube Search
+			queueSong(msg, args);
+		}
+	},
+	"queue-yt": {
+		name: "queue-yt",
+		process: (msg, args) => {
+			searchSong(msg, args);
+		}
+	},
+	"remove-song:": {
+		name: "remove-song",
+		process: (msg, args) => {
+			var removed = audioQueue.splice(args, 1);
+			msg.reply("is remove" + removed);
+		}
+	},
+	"skip-song": {
+		name: "skip-song",
+		process: () => {
+			audioHandler.end('skip-song');
 		}
 	},
 	"set-volume": {
 		name: "set-volume",
 		process: (msg, args) => {
-			dispatcher.setVolume(args);
+			if (isNaN(args)) {
+				msg.reply("Mang do you even int?");
+			} else if (args < 0 || args > 100) {
+				msg.reply("Mang these numbers are a bit spicy...")
+			} else {
+				audioVolume = args / 100;
+				if (audioHandler !== null) {
+					audioHandler.setVolume(audioVolume);
+				} 
+			}
 		}
 	}
 };
 
-function queueSong(url) {
-	audioQueue.push(url);
+function searchSong(msg, args) {
+	request("https://www.googleapis.com/youtube/v3/search?part=id&type=video&maxResults=5&order=relevance&q=" + encodeURIComponent(args) + "&key=" + YOUTUBE_API_KEY, (err, res, body) => {
+		var json = JSON.parse(body);
+		
+		if ("error" in json) {
+			msg.reply("Mang I just got rekt!");
+		} else if (json.items.length === 0) {
+			msg.reply("Mang youtube don't have my thing");
+		} else {
+			//msg.reply(json.items[0].id["videoId"]);
+			queueSong(msg, "https://www.youtube.com/watch?v=" + json.items[0].id["videoId"]);
+		}
+	});
 }
 
-function popSong() {
-	var song = audioQueue.shift();
-	return song;
-}
-
-function playSong(conn, song) {
-	const stream = ytdl(song, {filter : 'audioonly'});
-	audioCurrent = song;
+function queueSong(msg, args) {
+	if (audioConn === null) {
+		var voiceChannel = msg.guild.members.get(msg.author.id).voiceChannel;
+		if (voiceChannel) {
+			voiceChannel.join().then(conn => {
+				audioConn = conn;
+			}).catch(console.error);
+		}
+	}
 	
-	dispatcher = conn.playStream(stream);
+	ytdl.getInfo(args, (err, info) => {
+		if (err) {
+			msg.reply("Can't queue dis mang!");
+		} else {
+			audioQueue.push(args);
+			if (audioHandler === null && audioQueue.length === 1) {
+				playNextSong(info["title"]);
+			}
+		}
+	});
+}
+
+function playNextSong(title) {
+	var song = audioQueue[0];
+	
+	const stream = ytdl(song, {filter : 'audioonly'});
+	audioHandler = audioConn.playStream(stream);
+	audioHandler.setVolume(audioVolume);
+	audioCurrent = title;
+	
+	audioHandler.once("end", reason => {
+		audioHandler = null;
+		if (audioQueue.length !== 0) {
+			playNextSong();
+		}
+	});
+	
+	audioQueue.splice(0, 1);
 }
