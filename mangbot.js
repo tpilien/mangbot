@@ -2,7 +2,7 @@
 const Discord = require('discord.js');
 
 // Const variables
-const PREFIX = "mang";
+const PREFIX = "//";
 const COMMAND_LENGTH = 10;
 const ARGS_LENGTH = 10;
 
@@ -26,11 +26,11 @@ client.on('message', msg => {
 	}
 	
 	// check to make sure message is a command
-	var msgPrefix = msg.content.split(" ")[0];
+	var msgPrefix = msg.content.substring(0, PREFIX.length);
 	if (msgPrefix === PREFIX) {
 		// find out what command is being sent
-		var msgCmd = msg.content.split(" ")[1];
-		var msgArgs = msg.content.substring(msgPrefix.length + msgCmd.length + 2);
+		var msgCmd = msg.content.split(" ")[0].substring(PREFIX.length);
+		var msgArgs = msg.content.substring(msgPrefix.length + msgCmd.length + 1);
 
 		if (cmds[msgCmd]) {
 			cmds[msgCmd].process(msg, msgArgs);

@@ -1,8 +1,8 @@
 // commands.js
 
 //
-const auth = require("./auth.json");
-const YOUTUBE_API_KEY = auth["youtube_api_key"];
+const auth = require('./auth.json');
+const YOUTUBE_API_KEY = auth['youtube_api_key'];
 
 // Import modules
 const Discord = require('discord.js');
@@ -22,24 +22,31 @@ var audioVolume = 0.3;
 var audioCurrent = null;
 
 module.exports = {
-	"create-channel": {
-		name: "create-channel",
+/*
+	'change-name': {
+		name: 'change-name',
 		process: (msg, args) => {
-			var channelType = args.split(" ")[0];
+			msg.client.user.setUsername(args);
+		}
+	},
+	'create-channel': {
+		name: 'create-channel',
+		process: (msg, args) => {
+			var channelType = args.split(' ')[0];
 			
-			if (channelType === "voice" || channelType === "text") {
+			if (channelType === 'voice' || channelType === 'text') {
 				msg.guild.createChannel(args.substring(channelType.length + 1), channelType);
 			} else {
 				msg.guild.createChannel(args, 'text');
 			}
 		}
 	},
-	"delete-channel": {
-		name: "delete-channel",
+	'delete-channel': {
+		name: 'delete-channel',
 		process: (msg, args) => {
-			var channelType = args.split(" ")[0];
+			var channelType = args.split(' ')[0];
 			
-			if (channelType === "voice") {
+			if (channelType === 'voice') {
 				var channelName = args.substring(channelType.length + 1);
 				for (let [channelId, channel] of msg.guild.channels) {
 					if (channel.name === channelName && channel instanceof Discord.VoiceChannel) {
@@ -47,7 +54,7 @@ module.exports = {
 						break;
 					}
 				}
-			} else if (channelType === "text") {
+			} else if (channelType === 'text') {
 				var channelName = args.substring(channelType.length + 1);
 				for (let [channelId, channel] of msg.guild.channels) {
 					if (channel.name === channelName && channel instanceof Discord.TextChannel) {
@@ -65,62 +72,85 @@ module.exports = {
 			}
 		}
 	},
-	"now-playing": {
-		name: "now-playing",
+*/
+	'now-playing': {
+		name: 'now-playing',
+		shortcut: 'np',
 		process: (msg) => {
-			msg.reply("Mang Bot is play: " + audioCurrent);
-		}
-	},
-	"list-queue": {
-		name: "list-queue",
-		process: (msg) => {
-			var res = "";
-			
-			if (audioQueue.size === 0 && audioCurrent === null) {
-				res = "There ain't no songs queue mang!"
-			} else {
-				res += audioCurrent + "\n";
-				for (let song of audioQueue) {
-					res += song + "\n";
+			msg.channel.sendEmbed({
+				color: 3447003,
+				author: {
+					name: 'Now Playing:',
+				},
+				thumbnail: {
+					url: audioCurrent['thumbnail'],
+				},
+				title: audioCurrent['title'],
+				url: audioCurrent['url'],
+				footer: {
+					text: 'Vol: ' + audioVolume * 100 + ' | Req: ' + audioCurrent['requester'],
 				}
-			}
-			
-			msg.reply(res);
+			});
 		}
 	},
-	"queue-song": {
-		name: "queue-song",
+	'list-queue': {
+		name: 'list-queue',
+		shortcut: 'lq',
+		process: (msg) => {			
+			if (audioQueue.length === 0 && audioCurrent === null) {
+				const embed = new Discord.RichEmbed()
+				  .setDescription(`${msg.author}, I don't have music queued.`);
+				
+				msg.channel.send('', {embed : embed});
+			} else {
+				const embed = new Discord.RichEmbed()
+				  .setColor(0xFF8243)
+				  .setThumbnail('https://i.imgur.com/doEnUr3.png')
+				  .setAuthor('Music Queue - Mango Beats','https://i.imgur.com/RKT5C86.png', `${audioCurrent.url}`)
+				  .setDescription(`Now: [${audioCurrent.title}](${audioCurrent.url})\n${audioCurrent.requester}`)
+				  
+				for (let songInfo of audioQueue) {
+					embed.addField('\u200B', `[${songInfo.title}](${songInfo.url})\n${songInfo.requester}`);
+				}
+				
+				msg.channel.send('', {embed : embed});
+			}
+		}
+	},
+	'queue': {
+		name: 'queue-song',
 		process: (msg, args) => {
 			// TODO: Regex for playlist / Youtube Search
-			queueSong(msg, args);
+			// queueSong(msg, args);
+			searchSong(msg, args);
 		}
 	},
-	"queue-yt": {
-		name: "queue-yt",
+	'queue-yt': {
+		name: 'queue-yt',
 		process: (msg, args) => {
 			searchSong(msg, args);
 		}
 	},
-	"remove-song:": {
-		name: "remove-song",
+	'remove-song:': {
+		name: 'remove-song',
 		process: (msg, args) => {
 			var removed = audioQueue.splice(args, 1);
-			msg.reply("is remove" + removed);
+			msg.reply('is remove' + removed);
 		}
 	},
-	"skip-song": {
-		name: "skip-song",
+	'skip-song': {
+		name: 'skip-song',
 		process: () => {
 			audioHandler.end('skip-song');
 		}
 	},
-	"set-volume": {
-		name: "set-volume",
+	'set-volume': {
+		name: 'set-volume',
 		process: (msg, args) => {
 			if (isNaN(args)) {
-				msg.reply("Mang do you even int?");
+				msg.reply('Mang do you even int?');
 			} else if (args < 0 || args > 100) {
-				msg.reply("Mang these numbers are a bit spicy...")
+				msg.reply('Mang these numbers are a bit spicy...')
 			} else {
 				audioVolume = args / 100;
 				if (audioHandler !== null) {
@@ -132,16 +162,16 @@ module.exports = {
 };
 
 function searchSong(msg, args) {
-	request("https://www.googleapis.com/youtube/v3/search?part=id&type=video&maxResults=5&order=relevance&q=" + encodeURIComponent(args) + "&key=" + YOUTUBE_API_KEY, (err, res, body) => {
+	request('https://www.googleapis.com/youtube/v3/search?part=id&type=video&maxResults=5&order=relevance&q=' + encodeURIComponent(args) + '&key=' + YOUTUBE_API_KEY, (err, res, body) => {
 		var json = JSON.parse(body);
 		
-		if ("error" in json) {
-			msg.reply("Mang I just got rekt!");
+		if ('error' in json) {
+			msg.reply('Mang I just got rekt!');
 		} else if (json.items.length === 0) {
-			msg.reply("Mang youtube don't have my thing");
+			msg.reply('Mang youtube dont have my thing');
 		} else {
-			//msg.reply(json.items[0].id["videoId"]);
-			queueSong(msg, "https://www.youtube.com/watch?v=" + json.items[0].id["videoId"]);
+			//msg.reply(json.items[0].id['videoId']);
+			queueSong(msg, 'https://www.youtube.com/watch?v=' + json.items[0].id['videoId']);
 		}
 	});
 }
@@ -158,25 +188,43 @@ function queueSong(msg, args) {
 	
 	ytdl.getInfo(args, (err, info) => {
 		if (err) {
-			msg.reply("Can't queue dis mang!");
+			msg.reply('Cant queue dis mang!');
 		} else {
-			audioQueue.push(args);
+			var songInfo = {
+				title: info['title'], 
+				url: info['video_url'], 
+				thumbnail: info['thumbnail_url'], 
+				requester: msg.author.username,
+			}	
+			
+			audioQueue.push(songInfo);
+			
+			const embed = new Discord.RichEmbed()
+			  .setColor(0xFF8243)
+			  .setAuthor(`Queue Song: # + ${audioQueue.length}`)
+			  .setThumbnail(songInfo['thumbnail'])
+			  .setTitle(songInfo['title'])
+			  .setURL(songInfo['url']);
+			  
+			msg.channel.send('', {embed : embed});
+			
 			if (audioHandler === null && audioQueue.length === 1) {
-				playNextSong(info["title"]);
+				playNextSong(songInfo);
 			}
 		}
 	});
 }
 
-function playNextSong(title) {
-	var song = audioQueue[0];
+function playNextSong(info) {
+	var song = audioQueue[0]['url'];
+	console.log(song);
 	
 	const stream = ytdl(song, {filter : 'audioonly'});
 	audioHandler = audioConn.playStream(stream);
 	audioHandler.setVolume(audioVolume);
-	audioCurrent = title;
+	audioCurrent = info;
 	
-	audioHandler.once("end", reason => {
+	audioHandler.once('end', reason => {
 		audioHandler = null;
 		if (audioQueue.length !== 0) {
 			playNextSong();
