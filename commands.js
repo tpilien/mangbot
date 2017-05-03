@@ -10,8 +10,6 @@ const ytdl = require('ytdl-core');
 const request = require('request');
 
 // Global vars
-// Need dispatcher to control volume while streaming
-var dispatcher = null;
 
 // Music variables
 // Keep a queue of songs to playStream
@@ -19,6 +17,7 @@ var audioQueue = [];
 var audioConn = null;
 var audioHandler = null;
 var audioVolume = 0.3;
+var audioPaused = false;
 var audioCurrent = null;
 
 module.exports = {
@@ -158,6 +157,18 @@ module.exports = {
 				} 
 			}
 		}
+	},
+	'pause': {
+		name: 'pause',
+		process: (msg) => {
+			if (audioPaused) {
+				audioPaused = false;
+				audioHandler.resume();
+			} else {
+				audioPaused = true;
+				audioHandler.pause();
+			}
+		}
 	}
 };
 
@@ -226,7 +237,7 @@ function playNextSong(info) {
 	
 	audioHandler.once('end', reason => {
 		audioHandler = null;
-		if (audioQueue.length !== 0) {
+		if (audioQueue.length !== 0 && !audioPaused) {
 			playNextSong();
 		}
 	});
