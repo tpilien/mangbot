@@ -212,7 +212,7 @@ function queueSong(msg, args) {
 			
 			const embed = new Discord.RichEmbed()
 			  .setColor(0xFF8243)
-			  .setAuthor(`Queue Song: # + ${audioQueue.length}`)
+			  .setAuthor(`Queue Song: #${audioQueue.length}`)
 			  .setThumbnail(songInfo['thumbnail'])
 			  .setTitle(songInfo['title'])
 			  .setURL(songInfo['url']);
