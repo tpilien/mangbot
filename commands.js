@@ -72,6 +72,17 @@ module.exports = {
 		}
 	},
 */
+    'move' : {
+		name: 'move',
+		process: (msg) => {
+			var voiceChannel = msg.guild.members.get(msg.author.id).voiceChannel;
+			if (voiceChannel) {
+				voiceChannel.join().then(conn => {
+					audioConn = conn;
+				}).catch(console.error);
+			}
+		}
+	},
 	'now-playing': {
 		name: 'now-playing',
 		shortcut: 'np',
@@ -220,27 +231,28 @@ function queueSong(msg, args) {
 			msg.channel.send('', {embed : embed});
 			
 			if (audioHandler === null && audioQueue.length === 1) {
-				playNextSong(songInfo);
+				playNextSong();
 			}
 		}
 	});
 }
 
-function playNextSong(info) {
+function playNextSong() {
 	var song = audioQueue[0]['url'];
-	console.log(song);
+	//console.log(audioQueue[0]['title']);
 	
-	const stream = ytdl(song, {filter : 'audioonly'});
-	audioHandler = audioConn.playStream(stream);
-	audioHandler.setVolume(audioVolume);
-	audioCurrent = info;
+	var stream = ytdl(song, {filter : 'audioonly'});
+	setTimeout(() => {
+		audioHandler = audioConn.playStream(stream, {volume: audioVolume});
+		audioCurrent = audioQueue[0];
 	
-	audioHandler.once('end', reason => {
-		audioHandler = null;
-		if (audioQueue.length !== 0 && !audioPaused) {
-			playNextSong();
-		}
-	});
+		audioHandler.once('end', reason => {
+			audioHandler = null;
+			if (audioQueue.length !== 0 && !audioPaused) {
+				playNextSong();
+			}
+		});
+	}, 1000);
 	
 	audioQueue.splice(0, 1);
 }
