@@ -2,11 +2,12 @@
 const Discord = require('discord.js');
 
 // Const variables
-const PREFIX = "//";
+const PREFIX = "./";
 const COMMAND_LENGTH = 10;
 const ARGS_LENGTH = 10;
 
 var auth = require("./auth.json");
+var shortcut = require("./shortcut.json");
 var cmds = require("./commands.js");
 
 // Create an instance of a Discord Client
@@ -34,6 +35,8 @@ client.on('message', msg => {
 
 		if (cmds[msgCmd]) {
 			cmds[msgCmd].process(msg, msgArgs);
+		} else if (shortcut[msgCmd]) {
+			cmds[shortcut[msgCmd]].process(msg, msgArgs);
 		}
 	}
 });

@@ -1,0 +1,10 @@
+{
+	"q" : "queue",
+	"vol" : "set-volume",
+	"p" : "pause",
+	"np" : "now-playing",
+	"sq" : "list-queue",
+	"rm" : "remove-song",
+	"n" : "skip-song",
+	"ms" : "reorder-song"
+}
