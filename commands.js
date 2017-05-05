@@ -118,9 +118,12 @@ module.exports = {
 				  .setThumbnail('https://i.imgur.com/doEnUr3.png')
 				  .setAuthor('Music Queue - Mango Beats','https://i.imgur.com/RKT5C86.png')
 				  .setDescription(`Now: [${audioCurrent.title}](${audioCurrent.url})\n${audioCurrent.requester}`);
-				  
+				
+				var i = 1;	
 				for (let songInfo of audioQueue) {
 					embed.addField('\u200B', `[${songInfo.title}](${songInfo.url})\n${songInfo.requester}`);
+					i++;
+					if (i === 25) break;
 				}
 				
 				msg.channel.send('', {embed : embed});
@@ -133,6 +136,29 @@ module.exports = {
 			// TODO: Regex for playlist / Youtube Search
 			// queueSong(msg, args);
 			searchSong(msg, args);
+		}
+	},
+	'queue-playlist': {
+		name: 'queue-playlist',
+		process: (msg, args) => {
+			var re = /https?:\/\/www.youtube.com\/playlist\?list\=(\w+)$/;
+			var result = re.exec(args);
+			
+			request('https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=50&playlistId=' + result[1] + '&fields=items%2FcontentDetails%2FvideoId&key=' + YOUTUBE_API_KEY, (err, res, body) => {
+				var json = JSON.parse(body);
+		
+				if ('error' in json) {
+					msg.reply('Mang I just got rekt!');
+				} else if (json.items.length === 0) {
+					msg.reply('Mang youtube dont have my thing');
+				} else {
+					//msg.reply(json.items[0].id['videoId']);
+					for (let item of json.items) {
+						queueSong(msg, 'https://www.youtube.com/watch?v=' + item.contentDetails['videoId']);
+					}
+				}
+			}
+);
 		}
 	},
 	'remove-song:': {
