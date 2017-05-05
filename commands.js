@@ -116,8 +116,8 @@ module.exports = {
 				const embed = new Discord.RichEmbed()
 				  .setColor(0xFF8243)
 				  .setThumbnail('https://i.imgur.com/doEnUr3.png')
-				  .setAuthor('Music Queue - Mango Beats','https://i.imgur.com/RKT5C86.png', `${audioCurrent.url}`)
-				  .setDescription(`Now: [${audioCurrent.title}](${audioCurrent.url})\n${audioCurrent.requester}`)
+				  .setAuthor('Music Queue - Mango Beats','https://i.imgur.com/RKT5C86.png')
+				  .setDescription(`Now: [${audioCurrent.title}](${audioCurrent.url})\n${audioCurrent.requester}`);
 				  
 				for (let songInfo of audioQueue) {
 					embed.addField('\u200B', `[${songInfo.title}](${songInfo.url})\n${songInfo.requester}`);
@@ -132,12 +132,6 @@ module.exports = {
 		process: (msg, args) => {
 			// TODO: Regex for playlist / Youtube Search
 			// queueSong(msg, args);
-			searchSong(msg, args);
-		}
-	},
-	'queue-yt': {
-		name: 'queue-yt',
-		process: (msg, args) => {
 			searchSong(msg, args);
 		}
 	},
@@ -179,6 +173,18 @@ module.exports = {
 				audioPaused = true;
 				audioHandler.pause();
 			}
+		}
+	},
+	'reorder-song': {
+		name: 'reorder-song',
+		process: (msg, args) => {
+			var x = args.split(",")[0];
+			var y = args.split(",")[1];
+			
+			//expecting the format x,y
+			var temp = audioQueue[x];
+			audioQueue[x] = audioQueue[y];
+			audioQueue[y] = temp;
 		}
 	}
 };
@@ -252,7 +258,7 @@ function playNextSong() {
 				playNextSong();
 			}
 		});
+		
+		audioQueue.splice(0, 1);
 	}, 1000);
-	
-	audioQueue.splice(0, 1);
 }
