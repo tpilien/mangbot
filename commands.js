@@ -165,7 +165,7 @@ module.exports = {
 		name: 'remove-song',
 		process: (msg, args) => {
 			var removed = audioQueue.splice(args, 1);
-			msg.reply('is remove' + removed);
+			msg.reply('is remove' + removed['title']);
 		}
 	},
 	'skip-song': {
