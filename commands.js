@@ -121,7 +121,7 @@ module.exports = {
 				
 				var i = 1;	
 				for (let songInfo of audioQueue) {
-					embed.addField('\u200B', `[${songInfo.title}](${songInfo.url})\n${songInfo.requester}`);
+					embed.addField('\u200B', `${i}. [${songInfo.title}](${songInfo.url})\n${songInfo.requester}`);
 					i++;
 					if (i === 25) break;
 				}
