@@ -165,7 +165,14 @@ module.exports = {
 	'remove-song': {
 		name: 'remove-song',
 		process: (msg, args) => {
-			var removed = audioQueue.splice(args, 1);
+			var i = args - 1;
+			
+			if ((i < 0 || i >= audioQueue.length) && !isNaN(i)) {
+				msg.reply('Input Error or something idk');
+				return;
+			}
+			
+			var removed = audioQueue.splice(i, 1);
 			msg.reply('is remove' + removed[0]['title']);
 		}
 	},
@@ -207,6 +214,9 @@ module.exports = {
 		process: (msg, args) => {
 			var x = args.split(",")[0];
 			var y = args.split(",")[1];
+			
+			x = x - 1;
+			y = y - 1;
 			
 			//expecting the format x,y
 			var temp = audioQueue[x];
