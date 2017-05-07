@@ -19,6 +19,7 @@ var audioHandler = null;
 var audioVolume = 0.3;
 var audioPaused = false;
 var audioCurrent = null;
+var audioRepeat = false;
 
 module.exports = {
 /*
@@ -212,6 +213,18 @@ module.exports = {
 			audioQueue[x] = audioQueue[y];
 			audioQueue[y] = temp;
 		}
+	},
+	'set-repeat': {
+		name: 'repeat',
+		process: (msg) => {
+			if (audioRepeat) {
+				audioRepeat = false;
+				msg.channel.send('Repeating Playlist: Off');
+			} else {
+				audioRepeat = true;
+				msg.channel.send('Repeating Playlist: On');
+			}
+		}
 	}
 };
 
@@ -280,6 +293,9 @@ function playNextSong() {
 	
 		audioHandler.once('end', reason => {
 			audioHandler = null;
+			if (audioRepeat) {
+				audioQueue.push(audioCurrent);
+			}
 			if (audioQueue.length !== 0 && !audioPaused) {
 				playNextSong();
 			}
