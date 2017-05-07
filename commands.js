@@ -162,11 +162,11 @@ module.exports = {
 );
 		}
 	},
-	'remove-song:': {
+	'remove-song': {
 		name: 'remove-song',
 		process: (msg, args) => {
 			var removed = audioQueue.splice(args, 1);
-			msg.reply('is remove' + removed['title']);
+			msg.reply('is remove' + removed[0]['title']);
 		}
 	},
 	'skip-song': {
