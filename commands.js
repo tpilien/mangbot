@@ -218,10 +218,17 @@ module.exports = {
 			x = x - 1;
 			y = y - 1;
 			
+			if (!isNaN(x) || !isNan(y)) {
+				return;
+			}
+			
 			//expecting the format x,y
 			var temp = audioQueue[x];
-			audioQueue[x] = audioQueue[y];
-			audioQueue[y] = temp;
+			audioQueue(x, 1);
+			audioQueue(y, 0, temp);
+			
+			//audioQueue[x] = audioQueue[y];
+			//audioQueue[y] = temp;
 		}
 	},
 	'set-repeat': {
