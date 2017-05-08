@@ -242,6 +242,22 @@ module.exports = {
 				msg.channel.send('Repeating Playlist: On');
 			}
 		}
+	},
+	'shuffle': {
+		name: 'shuffle',
+		process: (msg) => {
+			var i = audioQueue.length;
+			
+			while (i > 0) {
+				let it = Math.floor(Math.random() * i);
+				
+				it--;
+				
+				let temp = audioQueue[i];
+				audioQueue[i] = audioQueue[it];
+				audioQueue[it] = temp;
+			}
+		}
 	}
 };
 
