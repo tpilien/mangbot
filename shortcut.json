@@ -3,8 +3,8 @@
 	"vol" : "set-volume",
 	"p" : "pause",
 	"np" : "now-playing",
-	"sq" : "list-queue",
+	"ls" : "list-queue",
 	"rm" : "remove-song",
 	"n" : "skip-song",
-	"ms" : "reorder-song"
+	"mv" : "reorder-song"
 }

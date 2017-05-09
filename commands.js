@@ -22,13 +22,13 @@ var audioCurrent = null;
 var audioRepeat = false;
 
 module.exports = {
-/*
 	'change-name': {
 		name: 'change-name',
 		process: (msg, args) => {
 			msg.client.user.setUsername(args);
 		}
 	},
+/*
 	'create-channel': {
 		name: 'create-channel',
 		process: (msg, args) => {
@@ -119,6 +119,12 @@ module.exports = {
 				  .setThumbnail('https://i.imgur.com/doEnUr3.png')
 				  .setAuthor('Music Queue - Mango Beats','https://i.imgur.com/RKT5C86.png')
 				  .setDescription(`Now: [${audioCurrent.title}](${audioCurrent.url})\n${audioCurrent.requester}`);
+				  
+				if (audioRepeat) {
+					embed.setFooter('Repeat: True');
+				} else {
+					embed.setFooter('Repeat: False');
+				}
 				
 				var i = 1;	
 				for (let songInfo of audioQueue) {
@@ -135,7 +141,6 @@ module.exports = {
 		name: 'queue-song',
 		process: (msg, args) => {
 			// TODO: Regex for playlist / Youtube Search
-			// queueSong(msg, args);
 			searchSong(msg, args);
 		}
 	},
@@ -222,13 +227,9 @@ module.exports = {
 				return;
 			}
 			
-			//expecting the format x,y
 			var temp = audioQueue[x];
 			audioQueue(x, 1);
 			audioQueue(y, 0, temp);
-			
-			//audioQueue[x] = audioQueue[y];
-			//audioQueue[y] = temp;
 		}
 	},
 	'set-repeat': {
@@ -266,11 +267,10 @@ function searchSong(msg, args) {
 		var json = JSON.parse(body);
 		
 		if ('error' in json) {
-			msg.reply('Mang I just got rekt!');
+			msg.reply(`Error parsing request for ${args}`);
 		} else if (json.items.length === 0) {
-			msg.reply('Mang youtube dont have my thing');
+			msg.reply('Error finding results for ${args}');
 		} else {
-			//msg.reply(json.items[0].id['videoId']);
 			queueSong(msg, 'https://www.youtube.com/watch?v=' + json.items[0].id['videoId']);
 		}
 	});
@@ -317,7 +317,6 @@ function queueSong(msg, args) {
 
 function playNextSong() {
 	var song = audioQueue[0]['url'];
-	//console.log(audioQueue[0]['title']);
 	
 	var stream = ytdl(song, {filter : 'audioonly'});
 	setTimeout(() => {
