@@ -107,7 +107,7 @@ module.exports = {
 	'list-queue': {
 		name: 'list-queue',
 		shortcut: 'lq',
-		process: (msg) => {			
+		process: (msg) => {
 			if (audioQueue.length === 0 && audioCurrent === null) {
 				const embed = new Discord.RichEmbed()
 				  .setDescription(`${msg.author}, I don't have music queued.`);
@@ -146,25 +146,29 @@ module.exports = {
 	},
 	'queue-playlist': {
 		name: 'queue-playlist',
+		usage: './queue-playlist <playlist-url>';
 		process: (msg, args) => {
 			var re = /https?:\/\/www.youtube.com\/playlist\?list\=(\w+)$/;
 			var result = re.exec(args);
+			
+			if (result.length !== 2) {
+				msg.reply(`Error: expecting usage ./queue-playlist <playlist-url>. Incorrect arguments`);
+			}
 			
 			request('https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=50&playlistId=' + result[1] + '&fields=items%2FcontentDetails%2FvideoId&key=' + YOUTUBE_API_KEY, (err, res, body) => {
 				var json = JSON.parse(body);
 		
 				if ('error' in json) {
-					msg.reply('Mang I just got rekt!');
+					msg.reply('Error: failed to parse json for queue-playlist');
 				} else if (json.items.length === 0) {
-					msg.reply('Mang youtube dont have my thing');
+					msg.reply('Error: parsed json produces empty array for queue-playlist');
 				} else {
 					//msg.reply(json.items[0].id['videoId']);
 					for (let item of json.items) {
 						queueSong(msg, 'https://www.youtube.com/watch?v=' + item.contentDetails['videoId']);
 					}
 				}
-			}
-);
+			});
 		}
 	},
 	'remove-song': {
@@ -173,12 +177,12 @@ module.exports = {
 			var i = args - 1;
 			
 			if ((i < 0 || i >= audioQueue.length) && !isNaN(i)) {
-				msg.reply('Input Error or something idk');
+				msg.reply('Error: ./remove-song expecting number, either invalid value given or not a number');
 				return;
 			}
 			
 			var removed = audioQueue.splice(i, 1);
-			msg.reply('is remove' + removed[0]['title']);
+			msg.reply(' Removed: ' + removed[0]['title']);
 		}
 	},
 	'skip-song': {
@@ -191,9 +195,9 @@ module.exports = {
 		name: 'set-volume',
 		process: (msg, args) => {
 			if (isNaN(args)) {
-				msg.reply('Mang do you even int?');
+				msg.reply('Error: ./set-volume expecting a number. Incorrect args');
 			} else if (args < 0 || args > 100) {
-				msg.reply('Mang these numbers are a bit spicy...')
+				msg.reply('Error: ./set-volume expecting a number between 0 and 100')
 			} else {
 				audioVolume = args / 100;
 				if (audioHandler !== null) {
@@ -217,6 +221,10 @@ module.exports = {
 	'reorder-song': {
 		name: 'reorder-song',
 		process: (msg, args) => {
+			if (args.split[","].length !== 2) {
+				msg.reply('Error: expecting usage ./reorder-song x,y incorrect args');
+			}
+			
 			var x = args.split(",")[0];
 			var y = args.split(",")[1];
 			
@@ -288,7 +296,7 @@ function queueSong(msg, args) {
 	
 	ytdl.getInfo(args, (err, info) => {
 		if (err) {
-			msg.reply('Cant queue dis mang!');
+			msg.reply('Error: unable to get information for song');
 		} else {
 			var songInfo = {
 				title: info['title'], 
