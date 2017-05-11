@@ -38,3 +38,4 @@ jspm_packages
 
 # Sensitive Data
 auth.json
+.env
